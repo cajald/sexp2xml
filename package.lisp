@@ -1,5 +1,5 @@
 (defpackage #:sexp2xml
   (:use #:cl)
-  (:export #:convert))
+  (:export #:toxml))
 
 (in-package #:sexp2xml)
