@@ -1,5 +1,5 @@
 # sexp2xml
-## the better _SXML_
+### the better _SXML_
 
 [![Support Ukraine!](https://img.shields.io/badge/Support-Ukraine-005BBB?labelColor=FFD500)](https://novaukraine.org/)
 
@@ -24,6 +24,8 @@ It is really more of a shitty SGML construction library for Common Lisp, but the
 are more people that know what XML is than what know what SGML is :).
 
 ## Installation
+
+### Libarary
 
 sexp2xml is not on Quicklisp yet, so I guess you'll need to install manually.
 
@@ -50,6 +52,18 @@ To load it, do:
 CL-USER> (ql:quickload :sexp2xml)      ; quicklisp
 CL-USER> (asdf:load-system "sexp2xml") ; asdf
 ```
+
+### CLI
+
+You'll need SBCL, it **must** be SBCL, and run:
+
+```sh
+$ sbcl --load cli.lisp
+```
+
+This will generate a `sexp2xml` executable. Usage: `sexp2xml [-v|-h] <FILE>`.
+If `FILE` is `-` or unspecified, it will read from `stdin`. `sexp2xml` will
+print the result to `stdout` and errors to `stderr`.
 
 ## License
 
