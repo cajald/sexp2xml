@@ -1,7 +1,7 @@
 (in-package #:sexp2xml)
 
 (defun escape-xml (s)
-  "Escape XML special characters. For text nodes."
+  "Escape XML special characters."
   (with-output-to-string (out)
     (loop for c across s do
       (write-string
@@ -13,60 +13,88 @@
          (t (string c)))
        out))))
 
+(defun raw-p (x)
+  (and (consp x)
+       (eq (car x) :raw)
+       (stringp (second x))
+       (null (cddr x))))
+
+(defun element-p (x)
+  (and (consp x)
+       (or (symbolp (car x))
+           (stringp (car x)))
+       (not (keywordp (car x)))))
+
 (defun attr-plist-p (x)
-  "Check if a given list is in the format of (:key val ...)"
   (and (consp x)
        (keywordp (first x))
        (evenp (length x))))
 
+(defun xml-name (x)
+  (etypecase x
+    (symbol (string-downcase (symbol-name x)))
+    (string x)))
+
 (defun render-attrs (attrs)
-  "Render attributes in XML format"
   (if (null attrs)
       ""
       (with-output-to-string (out)
         (loop for (k v) on attrs by #'cddr do
           (format out " ~a=\"~a\""
-                  (string-downcase (symbol-name k))
+                  (xml-name k)
                   (escape-xml (princ-to-string v)))))))
 
 (defun render-node (node &optional (indent 0))
-  "Render any node into XML."
-  (cond
-    ;; TEXT node
-    ((stringp node)
-     (escape-xml node))
+  (labels ((pad (n) (make-string n :initial-element #\Space)))
+    (cond
+      ;; NIL
+      ((null node) "")
 
-    ;; ELEMENT node
-    ((consp node)
-     (let* ((tag (car node))
-            (rest (cdr node))
-            (attrs (when (and rest (attr-plist-p (car rest)))
-                     (car rest)))
-            (children (if attrs (cdr rest) rest))
-            (attr-str (render-attrs attrs))
-            (indent-str (make-string indent :initial-element #\Space))
-            (child-indent (+ indent 2)))
+      ;; STRING
+      ((stringp node)
+       (escape-xml node))
 
-       (if (null children)
-           (format nil "~a<~a~a />"
-                   indent-str tag attr-str)
-           (let ((inner
-                   (with-output-to-string (out)
-                     (dolist (child children)
-                       (write-string
-                        (render-node child child-indent)
-                        out)
-                       (write-string (string #\Newline) out)))))
+      ;; RAW HTML
+      ((raw-p node)
+       (second node))
 
-             (format nil "~a<~a~a>~%~a~a~a</~a>"
-                     indent-str tag attr-str
-                     inner
-                     indent-str
-                     (make-string child-indent :initial-element #\Space)
-                     tag)))))
+      ;; ELEMENT
+      ((element-p node)
+       (let* ((tag (car node))
+              (rest (cdr node))
+              (attrs (when (and rest (attr-plist-p (car rest)))
+                       (car rest)))
+              (children (if attrs (cdr rest) rest))
+              (indent-str (pad indent))
+              (child-indent (+ indent 2))
+              (tag-name (xml-name tag))
+              (attr-str (render-attrs attrs)))
 
-    ;; fallback
-    (t "")))
+         (if (null children)
+             (format nil "~a<~a~a />"
+                     indent-str tag-name attr-str)
+             (let ((inner
+                     (with-output-to-string (out)
+                       (loop for child in children do
+                         (write-string (render-node child child-indent) out)
+                         (terpri out)))))
+               (format nil "~a<~a~a>~%~a~a</~a>"
+                       indent-str tag-name attr-str
+                       inner
+                       indent-str
+                       tag-name)))))
 
-(defmacro toxml (x)
-  `(render-node ,x))
+      ;; FRAGMENT
+      ((consp node)
+       (with-output-to-string (out)
+         (loop for child in node do
+           (write-string (render-node child indent) out)
+           (terpri out))))
+
+      ;; fallback
+      (t ""))))
+
+(defmacro toxml (&body body)
+  `(render-node ',(if (= (length body) 1)
+                      (first body)
+                      body)))

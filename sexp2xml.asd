@@ -4,5 +4,5 @@
   :author "Mario Rosell <mario@mariorosell.es>"
   :license "CC0-1.0 Universal"
   :serial t
- :components ((:file "package")
+  :components ((:file "package")
                (:file "main")))

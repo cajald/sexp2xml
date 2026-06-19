@@ -1,5 +1,5 @@
 (defpackage #:sexp2xml
   (:use #:cl)
-  (:export #:toxml))
+  (:export #:toxml #:render-node))
 
 (in-package #:sexp2xml)
