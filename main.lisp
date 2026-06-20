@@ -14,7 +14,7 @@
        out))))
 
 ;; IMPORTANT: keep synced with asdf version
-(defparameter *version* "0.1.0")
+(defconst *version* "0.1.0")
 
 (defun raw-p (x)
   (and (consp x)

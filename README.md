@@ -65,6 +65,21 @@ This will generate a `sexp2xml` executable. Usage: `sexp2xml [-v|-h] <FILE>`.
 If `FILE` is `-` or unspecified, it will read from `stdin`. `sexp2xml` will
 print the result to `stdout` and errors to `stderr`.
 
+## API
+
+The system name for sexp2xml is simply `sexp2xml:`. There are, in total, three
+exported symbols:
+
+| Symbol name   | Symbol type       | Symbol description                                                    |
+|---------------|-------------------|-----------------------------------------------------------------------|
+| `*version*`   | String (constant) | The current installed version of sexp2xml.                            |
+| `render-node` | Function (=> nil) | Convert a list to XML, without much checking.                         |
+| `toxml`       | Macro             | Like `render-node`, but quotes automatically and returns "" if empty. |
+
+> **IMPORTANT**: If you are converting user input, **always** use `toxml` to
+> avoid (unlikely) potential security holes. Do not quote input for `toxml`, that is
+> never what you want.
+
 ## License
 
 CC0. See the [LICENSE](./LICENSE) file for more information. Warranty:
